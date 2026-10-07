@@ -1,0 +1,68 @@
+name: Clip videos
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+    inputs:
+      video_url:
+        description: "Optional: test on ONE video link (never uploads to YouTube)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: clipper
+  cancel-in-progress: false
+
+jobs:
+  clip:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-dejavu-core
+          pip install -r requirements.txt
+
+      - name: Make clips
+        env:
+          PYTHONUNBUFFERED: "1"
+          VIDEO_URL: ${{ github.event.inputs.video_url }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          YT_COOKIES: ${{ secrets.YT_COOKIES }}
+        run: python clip.py
+
+      - name: Keep the finished clips
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: clips
+          path: out/
+          retention-days: 3
+          if-no-files-found: ignore
+
+      - name: Remember which videos are done
+        if: always()
+        run: |
+          git config user.name "clipper-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add processed.json
+          git diff --cached --quiet || (git commit -m "update processed list" && git push)

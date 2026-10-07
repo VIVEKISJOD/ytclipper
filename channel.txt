@@ -1,0 +1,11 @@
+# @handle | name | optional note
+@KaiCenat | Kai Cenat | allows clipping
+@IShowSpeed | IShowSpeed | allows clipping
+@Jynxzi | Jynxzi | allows clipping
+@xQc | xQc | allows clipping
+@CaseOh | CaseOh | allows clipping
+@AdinRoss | Adin Ross | allows clipping
+@Sketch | Sketch | allows clipping
+@Clix | Clix | allows clipping
+@Ludwig | Ludwig | allows clipping
+@MrBeast | MrBeast | allows clipping
